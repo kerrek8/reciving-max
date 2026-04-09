@@ -20,7 +20,7 @@ async def startup():
 async def limit_body(request: Request, call_next):
     if request.url.path == "/webhook":
         client_ip = request.client.host
-        allowed_ips = {"1.2.3.4"}
+        allowed_ips = {"89.169.144.17", "158.160.195.0", "158.160.47.204", "207.154.255.195"}
         if client_ip not in allowed_ips:
             raise HTTPException(status_code=403, detail="Unauthorized")
         auth = request.headers.get("Authorization")
