@@ -45,3 +45,7 @@ async def webhook(request: Request):
     await queue.put(payload)
 
     return {"status": "ok"}
+
+@app.get("/ping")
+async def ping(request: Request):
+    return {"ping": "pong"}
