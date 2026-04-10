@@ -12,7 +12,7 @@ async def send_with_retry(text, retries: int = 3):
         try:
             await bot.send_message(
                 chat_id=CHAT_ID,
-                text=f"{text[0]}{text[1]}{text[2]}",
+                text=f"{text}",
                 parse_mode="HTML"
             )
             return True

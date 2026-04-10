@@ -41,7 +41,6 @@ async def webhook(request: Request):
     payload = await request.json()
 
     logging.info("Webhook received")
-
     await queue.put(payload)
 
     return {"status": "ok"}
