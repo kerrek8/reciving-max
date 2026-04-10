@@ -1,8 +1,7 @@
 import json
 import os
 
-FILE = "threads.json"
-
+FILE = "data/threads.json"
 
 def load_threads():
     if not os.path.exists(FILE):

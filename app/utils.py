@@ -24,7 +24,7 @@ def parse_message(payload: dict):
             "text": (
                 f"👤 <b>{sender_name}</b>\n"
                 f"💬 <i>{chat_name}</i>\n\n"
-                f"📩 <pre>{text}</pre>"
+                f"📩 {text}"
             )
         }
 

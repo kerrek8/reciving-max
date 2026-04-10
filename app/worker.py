@@ -8,6 +8,16 @@ from app.storage import threads, save_threads
 
 queue: asyncio.Queue = asyncio.Queue()
 
+def resolve_entity(sender: dict):
+    chat_id = str(sender.get("chatId"))
+    sender_name = sender.get("senderName", "Unknown")
+    chat_name = sender.get("chatName", "Unknown")
+
+    # если это группа
+    if chat_name and chat_name != sender_name:
+        return chat_id, chat_name  # используем группу
+
+    return chat_id, sender_name  # личка
 
 async def get_or_create_thread(chat_id: str, sender_name: str):
     if chat_id in threads:
@@ -45,10 +55,10 @@ async def worker():
             msg = parse_message(payload)
 
             sender = payload.get("senderData", {})
-            chat_id = sender.get("chatId")
-            sender_name = sender.get("senderName", "Unknown")
 
-            thread_id = await get_or_create_thread(chat_id, sender_name)
+            chat_id, display_name = resolve_entity(sender)
+
+            thread_id = await get_or_create_thread(chat_id, display_name)
 
             # TEXT
             if msg["type"] == "text":
