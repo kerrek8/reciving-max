@@ -3,23 +3,22 @@ import logging
 
 from app.bot import bot
 from app.config import CHAT_ID
-from app.utils import format_payload
+from app.utils import parse_message
 
 queue: asyncio.Queue = asyncio.Queue()
-    
 
-async def send_with_retry(text: str, retries: int = 3):
+async def send_with_retry(text, retries: int = 3):
     for attempt in range(retries):
         try:
             await bot.send_message(
                 chat_id=CHAT_ID,
-                text=f"<pre>{text}</pre>",
+                text=f"{text[0]}{text[1]}{text[2]}",
                 parse_mode="HTML"
             )
             return True
         except Exception as e:
             logging.error(f"Send failed (attempt {attempt+1}): {e}")
-            await asyncio.sleep(2)
+            await asyncio.sleep(5)
 
     return False
 
@@ -29,13 +28,29 @@ async def worker():
         payload = await queue.get()
 
         try:
-            chunks = format_payload(payload)
+            msg = parse_message(payload)
 
-            for chunk in chunks:
-                success = await send_with_retry(chunk)
+            if msg["type"] == "text":
+                await send_with_retry(msg["text"])
 
-                if not success:
-                    logging.error("Message dropped after retries")
+            elif msg["type"] == "photo":
+                await bot.send_photo(
+                    chat_id=CHAT_ID,
+                    photo=msg["url"],
+                    caption=msg["text"],
+                    parse_mode="HTML"
+                )
+
+            elif msg["type"] == "video":
+                await bot.send_video(
+                    chat_id=CHAT_ID,
+                    video=msg["url"],
+                    caption=msg["text"],
+                    parse_mode="HTML"
+                )
+
+            else:
+                await send_with_retry(msg["text"])
 
         except Exception as e:
             logging.exception(f"Worker error: {e}")

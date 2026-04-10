@@ -1,11 +1,76 @@
 import html
 import json
 
-MAX_LEN = 4000
 
+def parse_message(payload: dict):
+    sender = payload.get("senderData", {})
+    message = payload.get("messageData", {})
 
-def format_payload(payload: dict) -> list[str]:
-    raw = json.dumps(payload, indent=2, ensure_ascii=False)
-    escaped = html.escape(raw)
+    sender_name = html.escape(sender.get("senderName", "Unknown"))
+    chat_name = html.escape(sender.get("chatName", "Unknown"))
 
-    return [escaped[i:i + MAX_LEN] for i in range(0, len(escaped), MAX_LEN)]
+    msg_type = message.get("typeMessage")
+
+    # === TEXT ===
+    if msg_type == "textMessage":
+        text = message.get("textMessageData", {}).get("textMessage", "")
+        text = html.escape(text)
+
+        return {
+            "type": "text",
+            "text": (
+                f"👤 <b>{sender_name}</b>\n"
+                f"💬 <i>{chat_name}</i>\n\n"
+                f"📩 <pre>{text}</pre>"
+            )
+        }
+
+    # === IMAGE ===
+    if msg_type == "imageMessage":
+        file_data = message.get("fileMessageData", {})
+
+        caption = html.escape(file_data.get("caption", ""))
+        url = file_data.get("downloadUrl")
+
+        text = (
+            f"👤 <b>{sender_name}</b>\n"
+            f"💬 <i>{chat_name}</i>\n\n"
+            f"🖼 Фото\n"
+        )
+
+        if caption:
+            text += f"\n💬 <i>{caption}</i>"
+
+        return {
+            "type": "photo",
+            "text": text,
+            "url": url
+        }
+
+    # === VIDEO ===
+    if msg_type == "videoMessage":
+        file_data = message.get("fileMessageData", {})
+
+        caption = html.escape(file_data.get("caption", ""))
+        url = file_data.get("downloadUrl")
+
+        text = (
+            f"👤 <b>{sender_name}</b>\n"
+            f"💬 <i>{chat_name}</i>\n\n"
+            f"🎥 Видео\n"
+        )
+
+        if caption:
+            text += f"\n💬 <i>{caption}</i>"
+
+        return {
+            "type": "video",
+            "text": text,
+            "url": url
+        }
+
+    # === UNKNOWN ===
+    return {
+        "type": "unknown",
+        "text": f"⚠️ Unknown message type: {msg_type}"
+    }
