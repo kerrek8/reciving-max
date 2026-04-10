@@ -1,5 +1,8 @@
 import html
-import json
+
+
+def safe(text: str) -> str:
+    return html.escape(text or "")
 
 
 def parse_message(payload: dict):
